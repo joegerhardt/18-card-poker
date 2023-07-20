@@ -18,6 +18,7 @@ I have used the following installed python modules:
 - pygame (to install: pip3 install pygame)
   
   
+  
 1. Run the poker.py file to load up a 3 player game of poker with Alice, Bob and Charlie.
 2. Use the keys C (call / check), R (raise) and F (fold) to make a move for the current player (highlighted in yellow).
 
