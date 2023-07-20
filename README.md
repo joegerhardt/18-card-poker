@@ -6,7 +6,7 @@
 
 The motivation behind this project is to use a simplified game of Texas Holdem poker as a test area for game theory AI algorithms on an imperfect information game. I hope to optimise a machine learning approach until I have an AI that can consistenly gain positive reward against an experienced strategy game player like myself. This will be an amazing learning opportunity for me to test every modern approach to game theory and deepen my knowledge on the area and the application of the area.
 
-Aprocahes / Algorithms:
+Aproaches / Algorithms:
 - ML PDF to narrow ranges (like human play)
 - Using nashpy to estimate a nash equilibrium from a determined payoff matrix
 - CFR
@@ -16,6 +16,7 @@ Aprocahes / Algorithms:
 
 I have used the following installed python modules:
 - pygame (to install: pip3 install pygame)
+
 
 1. Run the poker.py file to load up a 3 player game of poker with Alice, Bob and Charlie.
 2. Use the keys C (call / check), R (raise) and F (fold) to make a move for the current player (highlighted in yellow).
