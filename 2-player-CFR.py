@@ -142,10 +142,12 @@ def cfr(game, cards0, cards1, table_cards, history, bets, p0, p1):
     else:
          info_set = str(player_cards) + ": " + str([]) + ": " + history
 
+    amount_to_call = bets[opponent] - bets[player]
+
     try:
         node = nodeMap[info_set]
     except KeyError:
-        if bets[player] > 30:
+        if bets[player] > 40 - amount_to_call:
             node = Node(2)
         else:
             node = Node(3)
@@ -158,7 +160,7 @@ def cfr(game, cards0, cards1, table_cards, history, bets, p0, p1):
     strategy = node.getStrategy(p0 if player == 0 else p1)
     util = [0 for _ in range(node.num_actions)]
     nodeUtil = 0
-    amount_to_call = bets[opponent] - bets[player]
+    
     
     
     for a in range(node.num_actions):
@@ -185,7 +187,7 @@ def cfr(game, cards0, cards1, table_cards, history, bets, p0, p1):
 game = poker.Game(config.game_config)
 print(showdown(game, [2,2], [4,4], [3]))
 
-iterations = 20_000
+iterations = 1_000_000
 train(iterations)
 
 file_data = open("data.txt", "w")

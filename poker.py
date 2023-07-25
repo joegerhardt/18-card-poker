@@ -5,6 +5,7 @@ import config
 from display import Display
 import pygame
 import json
+import time
 
 
 
@@ -171,7 +172,6 @@ class Game:
         player = self.current_player
         call_amount = max(self.total_bets.values()) - self.total_bets[player]
         amount = call_amount + self.big_blind_amount
-        print(amount)
         self.bet(self.current_player, amount)
         self.next_player()
         if not player in self.players_moved_this_round:
@@ -227,6 +227,8 @@ class Game:
                         best_players = [player]
                     elif rest == best_rest:
                         best_players.append(player)
+        for player in best_players:
+            print(player.name, "wins with", player.hand)
         self.give_pot_to(best_players)
                 
 
@@ -449,29 +451,64 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_f:
+                    print(X.current_player.name, "fold")
                     X.fold()
                     D.update()
                 elif event.key == pygame.K_c:
+                    print(X.current_player.name, "call")
                     X.call()
                     D.update()
                 elif event.key == pygame.K_r:
                     if max(X.total_bets.values()) - X.total_bets[X.current_player] < X.current_player.stack:
+                        print(X.current_player.name, "raise")
                         X.min_raise()
                         D.update()
                 elif event.key == pygame.K_a:
-                    hand = list(X.players[1].hand)
+                    hand = list(X.current_player.hand)
                     hand.sort()
                     values = AI["['" + str(hand)+ "', '" + str(list(X.table_cards)) + "', '" + X.history + "']"]
                     ran = random.random()
+                    #print(values)
                     if ran < float(values[0]):
+                        print(X.current_player.name, "fold")
                         X.fold()
+                        
                     elif ran < float(values[0]) + float(values[1]):
+                        print(X.current_player.name, "call")
                         X.call()
+                        
                     else:
+                        print(X.current_player.name, "raise")
                         X.min_raise()
+                        
                     D.update()
             if event.type == pygame.QUIT:
                 running = False
+        
+        if X.current_player.name == "bob":
+            time.sleep(1)
+            hand = list(X.current_player.hand)
+            hand.sort()
+            try:
+                values = AI["['" + str(hand)+ "', '" + str(list(X.table_cards)) + "', '" + X.history + "']"]
+            except KeyError:
+                print("key error! " + "['" + str(hand)+ "', '" + str(list(X.table_cards)) + "', '" + X.history + "']")
+                values = [0.333, 0.333, 0.333]
+            ran = random.random()
+            #print(values)
+            if ran < float(values[0]):
+                print(X.current_player.name, "fold")
+                X.fold()
+                
+            elif ran < float(values[0]) + float(values[1]):
+                print(X.current_player.name, "call")
+                X.call()
+                
+            else:
+                print(X.current_player.name, "raise")
+                X.min_raise()
+                
+            D.update()
 
     pygame.quit()
 

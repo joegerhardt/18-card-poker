@@ -5,7 +5,7 @@
 game_config = {
     'small_blind': 5,
     'big_blind': 10,
-    'range': 3,
+    'range': 5,
     'suits': 2,
     'min_straight_length': 5,
     'betting_stage_public_cards': [0, 1],

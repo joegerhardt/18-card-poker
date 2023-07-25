@@ -40,7 +40,7 @@ class Display:
             player_x = self.table_center_x+self.table_size*math.cos(radians)
             player_y = self.table_center_y+self.table_size*math.sin(radians)
 
-            if player.hand != () and player.name == 'alice':
+            if player.hand != () and player.name == "alice":
                 
                 pygame.draw.rect(self.screen, (0,0,0), (player_x-37, player_y-27, 34, 54))
                 pygame.draw.rect(self.screen, (0,0,0), (403+250*math.cos(radians), 273+250*math.sin(radians), 34, 54))
