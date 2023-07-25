@@ -1,9 +1,10 @@
-from random import randint
+import random
 #from itertools import cycle
 #import pokerAI as ai
 import config
 from display import Display
 import pygame
+import json
 
 
 
@@ -63,6 +64,8 @@ class Game:
         self.betting_round = 0
         self.total_bets = {player:0 for player in self.players}
         self.pot = 0
+        self.num_hands = -1
+        self.scores = {player:0 for player in self.players}
 
         self.busted_players = []
         self.active_players = []
@@ -72,6 +75,7 @@ class Game:
         self.dealer = self.players[0]
         self.small_blind_player = None
         self.big_blind_player = None
+        self.history = ""
         
 
 
@@ -115,6 +119,8 @@ class Game:
 
     def fold(self):
 
+        self.history += "f"
+
         player = self.current_player
 
         #remove player from hand
@@ -148,25 +154,24 @@ class Game:
                     self.new_hand()
                 else:
                     self.new_round()
+                    self.history += "S"
 
 
 
     def bet(self, player, amount):
-        if amount >= player.stack:
-            #all in
-            player.stack = 0
-        else:
-            player.stack -= amount
         paid = min(amount, player.stack)
+        player.stack -= paid
         self.total_bets[player] += paid
         self.pot += paid
 
 
 
     def min_raise(self):
+        self.history += "r"
         player = self.current_player
         call_amount = max(self.total_bets.values()) - self.total_bets[player]
         amount = call_amount + self.big_blind_amount
+        print(amount)
         self.bet(self.current_player, amount)
         self.next_player()
         if not player in self.players_moved_this_round:
@@ -175,6 +180,7 @@ class Game:
 
 
     def call(self):
+        self.history += "c"
         player = self.current_player
         call_amount = max(self.total_bets.values()) - self.total_bets[player]
         self.bet(player, call_amount)
@@ -188,6 +194,7 @@ class Game:
                 self.new_hand()
             else:
                 self.new_round()
+                self.history += "S"
 
 
     def turn_list_to_number(self, a):
@@ -202,7 +209,7 @@ class Game:
         best_hand, best_qualities, best_rest = 0, 0, 0
         best_players = []
         for player in self.active_players:
-            (hand, qualities, rest) = self.evaluate(player.hand)
+            (hand, qualities, rest) = self.evaluate(player.hand, self.table_cards)
             qualities.reverse()
             rest.reverse()
             qualities = self.turn_list_to_number(qualities)
@@ -261,12 +268,19 @@ class Game:
 
     def new_hand(self):
 
+        self.history = "B"
+
         #take players cards
         for player in self.players:
             player.hand = ()
 
         #clear table
         self.table_cards = ()
+
+        self.num_hands += 1
+        for player in self.players:
+            self.scores[player] += player.stack - self.starting_stack
+            player.stack = self.starting_stack
 
         #reset active player pool
         self.active_players = self.players[:]
@@ -331,7 +345,7 @@ class Game:
         dealt = ()
         deck_size = len(self.deck)-1
         for i in range(num):
-            dealt += (self.deck.pop(randint(0,deck_size-i)),)
+            dealt += (self.deck.pop(random.randint(0,deck_size-i)),)
         return dealt
 
 
@@ -375,8 +389,8 @@ class Game:
 
 
 
-    def evaluate(self, hand):
-        hand = list(hand + self.table_cards)
+    def evaluate(self, hand, table_cards):
+        hand = list(hand + table_cards)
         hand.sort()
         if self.card_duplicates >= 4 and len(hand) >= 4:
             valid, value, remaining = self.check_4_of_a_kind_in_ordered(hand)
@@ -405,31 +419,61 @@ class Game:
                 return 1, [value], remaining
         return 0, [remaining[-1]], remaining[0:-2]
 
-X = Game(config.game_config)
-X.new_hand()
+if __name__ == "__main__":
+    X = Game(config.game_config)
+    X.new_hand()
 
-D = Display(X)
-D.update()
+    D = Display(X)
+    D.update()
+
+    AI = {}
+
+    file_data = open("data.txt", "r")
+    for line in file_data.readlines():
+        line_data = line.split(": ")
+        values = line_data[-1][:-1].strip('][').split(', ')
+        for value in values:
+            value = float(value)
+        key = []
+        for data in line_data[:-1]:
+            key.append(data)
+
+        AI[str(key)] = values
 
 
-#main game loop
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_f:
-                X.fold()
-                D.update()
-            elif event.key == pygame.K_c:
-                X.call()
-                D.update()
-            elif event.key == pygame.K_r:
-                X.min_raise()
-                D.update()
-        if event.type == pygame.QUIT:
-            running = False
 
-pygame.quit()
+
+    #main game loop
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_f:
+                    X.fold()
+                    D.update()
+                elif event.key == pygame.K_c:
+                    X.call()
+                    D.update()
+                elif event.key == pygame.K_r:
+                    if max(X.total_bets.values()) - X.total_bets[X.current_player] < X.current_player.stack:
+                        X.min_raise()
+                        D.update()
+                elif event.key == pygame.K_a:
+                    hand = list(X.players[1].hand)
+                    hand.sort()
+                    values = AI["['" + str(hand)+ "', '" + str(list(X.table_cards)) + "', '" + X.history + "']"]
+                    ran = random.random()
+                    if ran < float(values[0]):
+                        X.fold()
+                    elif ran < float(values[0]) + float(values[1]):
+                        X.call()
+                    else:
+                        X.min_raise()
+                    D.update()
+            if event.type == pygame.QUIT:
+                running = False
+
+    pygame.quit()
 
 
 

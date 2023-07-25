@@ -40,7 +40,7 @@ class Display:
             player_x = self.table_center_x+self.table_size*math.cos(radians)
             player_y = self.table_center_y+self.table_size*math.sin(radians)
 
-            if player.hand != ():
+            if player.hand != () and player.name == 'alice':
                 
                 pygame.draw.rect(self.screen, (0,0,0), (player_x-37, player_y-27, 34, 54))
                 pygame.draw.rect(self.screen, (0,0,0), (403+250*math.cos(radians), 273+250*math.sin(radians), 34, 54))
@@ -98,6 +98,11 @@ class Display:
             else:
                 pygame.draw.rect(self.screen, (255,0,0), (int(self.table_center_x+(self.card_size_x+self.card_offset)*(i-total_public_cards/2)),
                                                      self.table_center_y-self.card_size_y//2-self.card_border, 30, 50))
+                
+        
+        for i, player in enumerate(players):
+            score = self.small_font.render(player.name+": "+str(round(self.game.scores[player]/max(self.game.num_hands, 1)/self.game.big_blind_amount, 3))+"BB", True, (0,0,0))
+            self.screen.blit(score, (10,10+30*i))
                 
         pygame.display.flip()
             
